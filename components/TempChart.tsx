@@ -13,13 +13,16 @@ interface TempChartProps {
 }
 
 export function TempChart({ data }: TempChartProps) {
+    const toMs = (ts: number) => (ts && ts < 1e12) ? ts * 1000 : ts;
     const formattedData = data.map(d => ({
         ...d,
-        time: new Date(d.timestamp).toLocaleTimeString('en-IN', {
+        time: new Date(toMs(d.timestamp)).toLocaleTimeString('en-IN', {
             hour: '2-digit',
             minute: '2-digit',
-            timeZone: 'Asia/Kolkata'
+            timeZone: 'Asia/Kolkata',
+            hour12: false
         }),
+        timestamp: toMs(d.timestamp)
     }));
 
     // Calculate dynamic Y-axis domain
