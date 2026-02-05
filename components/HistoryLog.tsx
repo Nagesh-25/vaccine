@@ -13,7 +13,8 @@ export function HistoryLog({ history }: HistoryLogProps) {
 
     // Calculate time ago
     const getTimeAgo = (timestamp: number) => {
-        const seconds = Math.floor((Date.now() - timestamp) / 1000);
+        const ts = timestamp < 1e12 ? timestamp * 1000 : timestamp;
+        const seconds = Math.floor((Date.now() - ts) / 1000);
         if (seconds < 60) return 'Just now';
         const minutes = Math.floor(seconds / 60);
         if (minutes < 60) return `${minutes}m ago`;
@@ -89,8 +90,8 @@ export function HistoryLog({ history }: HistoryLogProps) {
                                             {trend === 'down' && <TrendingDown size={16} className="text-blue-500" />}
                                             {trend === 'stable' && <Minus size={16} className="text-gray-400" />}
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                            {getTimeAgo(log.timestamp)}
+                                        <p className="text-xs text-gray-500 mt-0.5" title={new Date(log.timestamp < 1e12 ? log.timestamp * 1000 : log.timestamp).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}>
+                                            {getTimeAgo(log.timestamp)} · {new Date(log.timestamp < 1e12 ? log.timestamp * 1000 : log.timestamp).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false })}
                                         </p>
                                     </div>
                                 </div>
