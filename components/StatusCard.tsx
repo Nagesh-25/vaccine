@@ -60,8 +60,24 @@ export function StatusCard({ temperature, humidity, lastUpdate, loading }: Statu
         glowEffect = "animate-pulse-glow";
     }
 
-    // Format timestamp
-    const timeString = lastUpdate > 0 ? new Date(lastUpdate).toLocaleTimeString() : "Syncing...";
+    // Format timestamp (normalize seconds -> ms and force IST) — show in 12-hour with am/pm
+    const _lastUpdateMs = lastUpdate > 0 ? (lastUpdate < 1e12 ? lastUpdate * 1000 : lastUpdate) : 0;
+    const formatIstTime = (d: Date) => {
+        // produce `hh:mm am/pm` (lowercase am/pm to match expectation)
+        return d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }).replace(/\s?(AM|PM)$/, (m) => m.toLowerCase());
+    };
+
+    const timeString = _lastUpdateMs
+        ? formatIstTime(new Date(_lastUpdateMs))
+        : 'Syncing...';
+
+    // live current IST clock (updates every second)
+    const [now, setNow] = useState(() => new Date());
+    useEffect(() => {
+        const t = setInterval(() => setNow(new Date()), 1000);
+        return () => clearInterval(t);
+    }, []);
+    const nowIst = formatIstTime(new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' })));
 
     if (loading) {
         return (
@@ -122,7 +138,10 @@ export function StatusCard({ temperature, humidity, lastUpdate, loading }: Statu
                     <Clock size={20} className="text-purple-500" />
                     <div>
                         <p className="text-xs text-gray-500">Last Updated</p>
-                        <p className="text-sm font-semibold text-gray-900">{timeString}</p>
+                        <p className="text-sm font-semibold text-gray-900" title={_lastUpdateMs ? new Date(_lastUpdateMs).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : undefined}>
+                            {timeString}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">Current IST: <span className="font-semibold text-gray-700">{nowIst}</span></p>
                     </div>
                 </div>
             </div>
