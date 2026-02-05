@@ -10,6 +10,8 @@ export interface TempDataPoint {
     humidity: number;
 }
 
+const toMs = (ts: number) => (ts && ts < 1e12) ? ts * 1000 : ts;
+
 export function useTemperature() {
     const [current, setCurrent] = useState<TempDataPoint | null>(null);
     const [history, setHistory] = useState<TempDataPoint[]>([]);
@@ -22,7 +24,7 @@ export function useTemperature() {
             const val = snapshot.val();
             if (val) {
                 setCurrent({
-                    timestamp: val.last_update,
+                    timestamp: toMs(val.last_update ?? val.timestamp ?? 0),
                     temperature: val.temperature,
                     humidity: val.humidity
                 });
@@ -35,8 +37,11 @@ export function useTemperature() {
         const unsubscribeLogs = onValue(logsRef, (snapshot) => {
             const val = snapshot.val();
             if (val) {
-                // Convert object to array
-                const list = Object.values(val) as TempDataPoint[];
+                // Convert object to array and normalize timestamps to ms
+                const list = Object.values(val).map((it: any) => ({
+                    ...it,
+                    timestamp: toMs(it.timestamp ?? it.last_update ?? 0)
+                })) as TempDataPoint[];
                 // Sort by timestamp if needed (Firebase keys usually ordered by time insertion if push() used)
                 // push() keys are time-ordered.
                 setHistory(list);
